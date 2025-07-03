@@ -1,3 +1,6 @@
+const API_BASE_URL = 'https://mangrove-brash-banjo.glitch.me';
+
+
 // =================================================================
 // --- SMART AI - FINAL SCRIPT - V2.0 ---
 // =================================================================
@@ -29,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let audioChunks = [];
     let currentFeedbackContext = null;
 
-    const API_BASE_URL = '/api';
+    
 
     const modelDescriptions = {
         general: "Excellent for most tasks.",
