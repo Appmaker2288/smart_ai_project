@@ -1,0 +1,43 @@
+{
+  "name": "smart-ai-project-final",
+  "version": "1.0.0",
+  "description": "A full-featured AI chat application with file generation and conversion.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ai",
+    "chatbot",
+    "openai",
+    "express"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.5",
+    "bcryptjs": "^3.0.2",
+    "bullmq": "^5.56.0",
+    "cheerio": "^1.1.0",
+    "cors": "^2.8.5",
+    "docx": "^8.5.0",
+    "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
+    "express": "^4.19.2",
+    "ioredis": "^5.6.1",
+    "jsonwebtoken": "^9.0.2",
+    "mammoth": "^1.7.2",
+    "mongodb": "^6.17.0",
+    "mongoose": "^8.16.1",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^4.2.0",
+    "node-fetch": "^2.7.0",
+    "openai": "^4.52.2",
+    "pdf-lib": "^1.17.1",
+    "pdf-parse": "^1.1.1",
+    "pexels": "^1.4.0",
+    "pptxgenjs": "^3.12.0",
+    "serper": "^1.0.1"
+  }
+}

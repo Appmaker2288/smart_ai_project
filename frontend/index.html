@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Smart AI</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png"> 
+    <link rel="manifest" href="manifest.json">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://challenges.cloudflare.com/api.js" async defer></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="auth-view">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h1>Smart AI</h1>
+                <p>Your Personal, Intelligent Platform</p>
+            </div>
+
+            <div id="login-form-container">
+                <h2>Welcome Back</h2>
+                <form id="login-form">
+                    <input type="email" id="login-email" placeholder="Email" required autocomplete="email">
+                    <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password">
+                    
+                    <div class="cf-turnstile" data-sitekey="0x4AAAAAABjMG1cPlnGa38v3"></div>
+
+                    <div class="remember-me-container">
+                        <input type="checkbox" id="remember-me">
+                        <label for="remember-me">Remember me</label>
+                    </div>
+                    <button type="submit">Login</button>
+                    <p class="auth-switch">Don't have an account? <a href="#" id="show-register-link">Register here</a></p>
+                </form>
+            </div>
+            <div id="register-form-container" class="hidden">
+                <h2>Create Account</h2>
+                <form id="register-form">
+                    <input type="email" id="register-email" placeholder="Email" required autocomplete="email">
+                    <input type="password" id="register-password" placeholder="Password (min. 6 characters)" required autocomplete="new-password">
+                    <input type="password" id="register-password-confirm" placeholder="Confirm Password" required autocomplete="new-password">
+                    
+                     <div class="cf-turnstile" data-sitekey="0x4AAAAAABjMG1cPlnGa38v3"></div>
+
+                    <button type="submit">Register</button>
+                    <p class="auth-switch">Already have an account? <a href="#" id="show-login-link">Login here</a></p>
+                </form>
+            </div>
+            <p id="auth-error" class="error-message"></p>
+        </div>
+    </div>
+
+    <div id="app-container" class="hidden">
+        <div id="app-layout">
+            <aside id="history-sidebar">
+                <div class="sidebar-header">
+                    <button id="new-chat-button" class="sidebar-button">+ New Chat</button>
+                    <button id="theme-toggle-button" class="sidebar-button" title="Toggle Theme">☀️</button>
+                </div>
+                <nav id="chat-history-list"></nav>
+                <div class="sidebar-footer">
+                    <span id="user-email-display" class="user-email"></span>
+                    <button id="logout-button" class="sidebar-button export-button logout">Logout</button>
+                    <hr class="footer-divider">
+                    <button id="summarize-button" class="sidebar-button export-button summary">Summarize Chat</button>
+                    <button id="convert-file-button" class="sidebar-button export-button convert">Convert File</button>
+                    <button id="profile-button" class="sidebar-button export-button profile">My Profile</button>
+                    <button id="agents-button" class="sidebar-button export-button agents">My Agents</button>
+                    <button id="scripting-button" class="sidebar-button export-button scripting">Workflow Scripts</button>
+                    <hr class="footer-divider">
+                    <button id="generate-pdf-button" class="sidebar-button export-button pdf">Create PDF</button>
+                    <button id="generate-docx-button" class="sidebar-button export-button docx">Create Word</button>
+                    <button id="generate-excel-button" class="sidebar-button export-button excel">Create Excel</button>
+                    <button id="generate-pptx-button" class="sidebar-button export-button pptx">Create PowerPoint</button>
+                </div>
+            </aside>
+        
+<main id="main-content">
+                <div id="chat-view">
+                    <header class="app-header">
+                        <button id="hamburger-button" class="hamburger-button mobile-only" title="Open Menu">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 12H21M3 6H21M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
+                        <div class="title-container">
+                            <h1 id="model-title">Smart AI</h1>
+                            <p id="model-description">Select a persona to begin</p>
+                        </div>
+                    </header>
+
+                    <div class="model-selector">
+                        <div class="model-option" data-model="general"><strong>General</strong></div>
+                        <div class="model-option" data-model="coding"><strong>Coding</strong></div>
+                        <div class="model-option" data-model="professional"><strong>Professional</strong></div>
+                        <div class="model-option" data-model="academic"><strong>Academic</strong></div>
+                    </div>
+
+                    <div id="chat-container" class="chat-container"></div>
+                    
+                    <footer class="input-area-container">
+                        <div id="contextual-actions-container"></div>
+                        <div id="preview-container" class="preview-container"></div>
+                        <div class="input-area">
+                            <button id="microphone-button" class="input-icon-button" title="Voice Input">
+                                <svg class="mic-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                                <svg class="stop-recording-icon" style="display: none;" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+                            </button>
+                            <button id="attachment-button" class="input-icon-button" title="Attach file">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </button>
+                            <textarea id="user-input" placeholder="Ask anything..." rows="1"></textarea>
+                            <button id="send-button" title="Send Message">
+                                 <svg class="send-icon" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9.52 4.23L17.55 8.25c4.02 2.01 4.02 5.49 0 7.5L9.52 19.77c-6.03 3.01-8.32.72-5.3-5.31l1.04-2.07-1.04-2.07C1.2 3.51 3.49 1.22 9.52 4.23z" fill="currentColor"/></svg>
+                                 <svg class="stop-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="display: none;"><path d="M6 6h12v12H6z"/></svg>
+                            </button>
+                            <input type="file" id="file-input" accept="image/*" hidden>
+                        </div>
+                    </footer>
+                </div>
+            </main>
+        </div>
+
+        <div id="summary-modal" class="modal-overlay hidden"></div>
+        <div id="conversion-modal" class="modal-overlay hidden"></div>
+        <div id="profile-modal" class="modal-overlay hidden"></div>
+        <div id="agents-modal" class="modal-overlay hidden"></div>
+        <div id="scripting-modal" class="modal-overlay hidden"></div>
+        <div id="feedback-modal" class="modal-overlay hidden"></div>
+        <div id="meta-modal" class="modal-overlay hidden"></div>
+
+        <div id="toast-container"></div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
+
