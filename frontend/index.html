@@ -20,36 +20,52 @@
     <div id="auth-view">
         <div class="auth-container">
             <div class="auth-header">
-                <h1>Smart AI</h1>
+                <div class="logo">✨</div>
+                <h1>Welcome to Smart AI</h1>
                 <p>Your Personal, Intelligent Platform</p>
             </div>
 
             <div id="login-form-container">
-                <h2>Welcome Back</h2>
+                <h2 class="auth-title">Login</h2>
                 <form id="login-form">
-                    <input type="email" id="login-email" placeholder="Email" required autocomplete="email">
-                    <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password">
-                    
-                    <div class="cf-turnstile" data-sitekey="Your_Site_Key_Here"></div>
-
+                    <div class="input-group">
+                        <label for="login-email">Email Address</label>
+                        <input type="email" id="login-email" required autocomplete="email">
+                    </div>
+                    <div class="input-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required autocomplete="current-password">
+                    </div>
+                    <div class="cf-turnstile" data-sitekey="0x4AAAAAABjMG1cPlnGa38v3"></div>
                     <div class="remember-me-container">
                         <input type="checkbox" id="remember-me">
                         <label for="remember-me">Remember me</label>
                     </div>
-                    <button type="submit">Login</button>
+                    <div class="auth-actions">
+                        <button type="submit" class="auth-button">Login</button>
+                    </div>
                     <p class="auth-switch">Don't have an account? <a href="#" id="show-register-link">Register here</a></p>
                 </form>
             </div>
             <div id="register-form-container" class="hidden">
-                <h2>Create Account</h2>
+                <h2 class="auth-title">Create Account</h2>
                 <form id="register-form">
-                    <input type="email" id="register-email" placeholder="Email" required autocomplete="email">
-                    <input type="password" id="register-password" placeholder="Password (min. 8 characters)" required autocomplete="new-password">
-                    <input type="password" id="register-password-confirm" placeholder="Confirm Password" required autocomplete="new-password">
-                    
-                     <div class="cf-turnstile" data-sitekey="Your_Site_Key_Here"></div>
-
-                    <button type="submit">Register</button>
+                    <div class="input-group">
+                        <label for="register-email">Email Address</label>
+                        <input type="email" id="register-email" required autocomplete="email">
+                    </div>
+                    <div class="input-group">
+                        <label for="register-password">Password</label>
+                        <input type="password" id="register-password" placeholder="Min. 8 characters with complexity" required autocomplete="new-password">
+                    </div>
+                    <div class="input-group">
+                        <label for="register-password-confirm">Confirm Password</label>
+                        <input type="password" id="register-password-confirm" required autocomplete="new-password">
+                    </div>
+                    <div class="cf-turnstile" data-sitekey="0x4AAAAAABjMG1cPlnGa38v3"></div>
+                    <div class="auth-actions">
+                        <button type="submit" class="auth-button">Register</button>
+                    </div>
                     <p class="auth-switch">Already have an account? <a href="#" id="show-login-link">Login here</a></p>
                 </form>
             </div>
@@ -79,7 +95,7 @@
                     <button id="scripting-button" class="sidebar-button export-button scripting">Workflow Scripts</button>
                     <hr class="footer-divider">
                     <div class="dropdown-container">
-                        <button id="create-file-button" class="sidebar-button">✨ Create New File</button>
+                        <button id="create-file-button" class="sidebar-button">Create New File</button>
                         <div id="create-file-dropdown" class="dropdown-menu hidden">
                             <a href="#" data-type="pdf">PDF Document</a>
                             <a href="#" data-type="docx">Word Document</a>
@@ -148,6 +164,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lottie-web@5.12.2/build/player/lottie.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

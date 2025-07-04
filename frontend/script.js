@@ -5,6 +5,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- 1. INITIAL DOM SELECTIONS & STATE ---
     const dom = {
+        // Auth View
         authView: document.getElementById('auth-view'),
         appContainer: document.getElementById('app-container'),
         loginForm: document.getElementById('login-form'),
@@ -17,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         body: document.body,
     };
 
-    let appDom = {};
+    let appDom = {}; // Populated after login
     
     let conversations = {};
     let activeChatId = null;
@@ -29,9 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let audioChunks = [];
     let currentFeedbackContext = null;
     
-    // --- FINAL API URL for DEPLOYMENT ---
-    const API_BASE_URL = 'https://mangrove-brash-banjo.glitch.me/api';
-    console.log(`API endpoint is set to: ${API_BASE_URL}`);
+    // API_BASE_URL is now set dynamically on init
+    let API_BASE_URL = '';
 
     const modelDescriptions = {
         general: "Excellent for most tasks.",
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function detectPlatform() {
         const ua = navigator.userAgent;
         if (/android/i.test(ua)) return 'platform-android';
-        if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return 'platform-ios';
+        if (/iPad|iPhone|iPod/.test(ua)) return 'platform-ios';
         if (/Mac|iMac|MacBook/i.test(ua)) return 'platform-macos';
         if (/Windows/i.test(ua)) return 'platform-windows';
         return 'platform-linux';
@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateContextualActions(null);
         appDom.chatContainer.querySelector('.welcome-message')?.remove();
         appDom.sendButton.classList.add('is-generating');
-        appDom.sendButton.disabled = false; // Allow click to stop
+        appDom.sendButton.disabled = false;
 
         const currentConvo = conversations[activeChatId];
         const userMessageData = { role: 'user', content: messageText };
@@ -305,22 +305,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    async function summarizeChat() { /* Full function code using secureFetch */ }
-    async function generateFile(type) { /* Full async/polling function code using secureFetch */ }
-    async function handleFileConversion(event) { /* Full function code using secureFetch */ }
-    async function loadProfile() { /* Full function code using secureFetch */ }
-    async function saveProfile(event) { /* Full function code using secureFetch */ }
-    async function loadAgents() { /* Full function code using secureFetch */ }
-    async function createAgent(event) { /* Full function code using secureFetch */ }
-    async function deleteAgent(agentId) { /* Full function code using secureFetch */ }
-    async function executeScript() { /* Full function code using secureFetch */ }
-    function showSuggestionToast(suggestion) { /* Full function code */ }
-    async function fetchSuggestions() { /* Full function code using secureFetch */ }
-    function showMetaCognition(thoughtProcess) { /* Full function code */ }
-    async function submitFeedback(rating, comment = '') { /* Full function code using secureFetch */ }
-    function handleFeedbackClick(rating, buttonElement, messageElement, messageContent) { /* Full function code */ }
-    async function toggleRecording() { /* Full function code using secureFetch */ }
-    async function createPaymentInvoice() { /* Full function code using secureFetch */ }
+    async function summarizeChat() { /* ... full function code using secureFetch ... */ }
+    async function generateFile(type) { /* ... full async/streaming function code using secureFetch ... */ }
+    async function handleFileConversion(event) { /* ... full function code using secureFetch ... */ }
+    async function loadProfile() { /* ... full function code using secureFetch ... */ }
+    async function saveProfile(event) { /* ... full function code using secureFetch ... */ }
+    async function loadAgents() { /* ... full function code using secureFetch ... */ }
+    async function createAgent(event) { /* ... full function code using secureFetch ... */ }
+    async function deleteAgent(agentId) { /* ... full function code using secureFetch ... */ }
+    async function executeScript() { /* ... full function code using secureFetch ... */ }
+    function showSuggestionToast(suggestion) { /* ... full function code ... */ }
+    async function fetchSuggestions() { /* ... full function code using secureFetch ... */ }
+    function showMetaCognition(thoughtProcess) { /* ... full function code ... */ }
+    async function submitFeedback(rating, comment = '') { /* ... full function code using secureFetch ... */ }
+    function handleFeedbackClick(rating, buttonElement, messageElement, messageContent) { /* ... full function code ... */ }
+    async function toggleRecording() { /* ... full function code using secureFetch ... */ }
+    async function createPaymentInvoice() { /* ... full function code using secureFetch ... */ }
 
 // --- End of Part 2 ---
 // --- Start of Part 3 ---
@@ -345,19 +345,64 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateMessage(element, content) {
+        if (!element) return;
         element.innerHTML = marked.parse(content.replace(/\[META:.*\]/s, '') + ' ▌');
         if(appDom.chatContainer) appDom.chatContainer.scrollTop = appDom.chatContainer.scrollHeight;
     }
 
     function finalizeMessage(element, content) {
-        element.innerHTML = marked.parse(content);
+        if (!element) return;
+        const cleanedContent = content.replace(/\[META:.*\]/s, '').trim();
+        element.innerHTML = marked.parse(cleanedContent);
         element.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
     }
     
-    function extractAndRenderMeta(element, content) { /* ... same as previous complete version ... */ }
-    function updateContextualActions(context) { /* ... same as previous complete version ... */ }
-    function toggleSendButton() { /* ... same as previous complete version ... */ }
-    function updateModelTitle(personaArray) { /* ... same as previous complete version ... */ }
+    function extractAndRenderMeta(element, content) {
+        if (!element) return;
+        finalizeMessage(element, content); // Render main content first
+
+        const metaMatch = content.match(/\[META:\s*({.*})\]/s);
+        if (metaMatch && metaMatch[1]) {
+            try {
+                const metaData = JSON.parse(metaMatch[1]);
+                if (metaData.thought_process) {
+                    const footer = document.createElement('div');
+                    footer.className = 'message-footer';
+                    const metaButton = document.createElement('button');
+                    metaButton.className = 'meta-cognition-button';
+                    metaButton.textContent = 'Thought Process';
+                    metaButton.onclick = () => showMetaCognition(metaData.thought_process);
+                    footer.appendChild(metaButton);
+                    element.appendChild(footer);
+                }
+            } catch (e) { console.error("Failed to parse meta-cognition JSON:", e); }
+        }
+
+        if (element.classList.contains('bot-message')) {
+            let footer = element.querySelector('.message-footer');
+            if (!footer) {
+                footer = document.createElement('div');
+                footer.className = 'message-footer';
+                element.appendChild(footer);
+            }
+            const thumbUp = document.createElement('button');
+            thumbUp.className = 'feedback-button';
+            thumbUp.title = 'Good response';
+            thumbUp.innerHTML = '👍';
+            thumbUp.onclick = () => handleFeedbackClick('positive', thumbUp, element, content);
+            const thumbDown = document.createElement('button');
+            thumbDown.className = 'feedback-button';
+            thumbDown.title = 'Bad response';
+            thumbDown.innerHTML = '👎';
+            thumbDown.onclick = () => handleFeedbackClick('negative', thumbDown, element, content);
+            footer.appendChild(thumbUp);
+            footer.appendChild(thumbDown);
+        }
+    }
+
+    function updateContextualActions(context) { /* ... full function code ... */ }
+    function toggleSendButton() { /* ... full function code ... */ }
+    function updateModelTitle(personaArray) { /* ... full function code ... */ }
     const path = { parse: (filePath) => ({ name: filePath.substring(0, filePath.lastIndexOf('.')), ext: filePath.substring(filePath.lastIndexOf('.')) }) };
 
     // =================================================================
@@ -367,13 +412,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function saveConversations() { localStorage.setItem(`smartAIChats_${localStorage.getItem('userEmail')}`, JSON.stringify(conversations)); }
     function loadConversations() { conversations = JSON.parse(localStorage.getItem(`smartAIChats_${localStorage.getItem('userEmail')}`)) || {}; }
 
-    function createNewChat() { /* ... same as previous complete version ... */ }
-    function loadChat(id) { /* ... same as previous complete version ... */ }
-    function deleteChat(id) { /* ... same as previous complete version ... */ }
-    function renderChatHistoryList() { /* ... same as previous complete version with delegated listeners ... */ }
+    function createNewChat() { /* ... full function code ... */ }
+    function loadChat(id) { /* ... full function code ... */ }
+    function deleteChat(id) { /* ... full function code ... */ }
+    function renderChatHistoryList() { /* ... full function code with delegated listeners ... */ }
 
     // =================================================================
-    // --- 9. EVENT LISTENERS ---
+    // --- 9. EVENT LISTENERS & INITIALIZATION ---
     // =================================================================
     
     function addSafeListener(element, event, handler) {
@@ -381,47 +426,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function addMainAppListeners() {
-        // Re-select all DOM elements for the main app now that it's visible
-        appDom = {
-            appLayout: document.getElementById('app-layout'),
-            historySidebar: document.getElementById('history-sidebar'),
-            newChatButton: document.getElementById('new-chat-button'),
-            themeToggleButton: document.getElementById('theme-toggle-button'),
-            chatHistoryList: document.getElementById('chat-history-list'),
-            hamburgerButton: document.getElementById('hamburger-button'),
-            userEmailDisplay: document.getElementById('user-email-display'),
-            logoutButton: document.getElementById('logout-button'),
-            // ... Select ALL other app-specific dom elements here
-        };
+        Object.keys(appDom).forEach(key => {
+            const el = document.getElementById(key);
+            if (el) appDom[key] = el;
+        });
         
         addSafeListener(appDom.logoutButton, 'click', handleLogout);
         addSafeListener(appDom.newChatButton, 'click', createNewChat);
         // ... (Add ALL other listeners for the main app here using appDom.element)
     }
 
-    // =================================================================
-    // --- 10. INITIALIZATION ---
-    // =================================================================
-
     function initializeApp() {
         toggleViews();
-        
-        // Populate main app container with its HTML from a template if it's empty
-        // This ensures elements exist before we add listeners
-        if (dom.appContainer.querySelector('#app-layout')) {
-             // Already initialized
-        } else {
-            const template = document.getElementById('main-app-template');
-            if (template) dom.appContainer.appendChild(template.content.cloneNode(true));
-        }
-        
         addMainAppListeners();
         
         appDom.userEmailDisplay.textContent = localStorage.getItem('userEmail');
         
         const isDark = localStorage.getItem('theme') === 'dark';
-        if (isDark) dom.body.classList.add('dark-mode');
-        appDom.themeToggleButton.textContent = isDark ? '🌙' : '☀️';
+        dom.body.classList.toggle('dark-mode', isDark);
+        if (appDom.themeToggleButton) appDom.themeToggleButton.textContent = isDark ? '🌙' : '☀️';
         
         loadConversations();
         const ids = Object.keys(conversations).sort((a,b)=>b.localeCompare(a));
@@ -436,6 +459,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- Initial Script Execution ---
     dom.body.classList.add(detectPlatform());
+    API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+        ? 'http://localhost:3000/api'
+        : 'https://mangrove-brash-banjo.glitch.me/api';
+
     addSafeListener(dom.loginForm, 'submit', handleLogin);
     addSafeListener(dom.registerForm, 'submit', handleRegister);
     addSafeListener(dom.showRegisterLink, 'click', (e) => { e.preventDefault(); showRegisterView(); });
@@ -447,6 +474,5 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleViews();
     }
 });
-
 // --- End of Part 3 ---
 
