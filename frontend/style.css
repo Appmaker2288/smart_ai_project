@@ -15,11 +15,16 @@
     --sidebar-bg: #f7f7f7;
     --text-color: #212121;
     --text-color-light: #5f6368;
+    --text-color-dark: #1a1a1a;
     --border-color: #e0e0e0;
     --accent-color: #000000;
+    --accent-color-darker: #333333;
     --message-bg: #f1f3f4;
     --user-message-bg: #e8e8e8;
     --code-bg: #2d2d2d;
+    --input-bg: #ffffff;
+    --button-text: #ffffff;
+    --error-color: #dc2626;
 }
 
 body.dark-mode {
@@ -28,11 +33,16 @@ body.dark-mode {
     --sidebar-bg: #1e1e1e;
     --text-color: #e8eaed;
     --text-color-light: #9aa0a6;
+    --text-color-dark: #ffffff;
     --border-color: #3a3a3a;
     --accent-color: #ffffff;
+    --accent-color-darker: #cccccc;
     --message-bg: #2a2a2a;
     --user-message-bg: #3c4043;
     --code-bg: #282c34;
+    --input-bg: #2a2a2a;
+    --button-text: #121212;
+    --error-color: #f87171;
 }
 
 /* =================================================================
@@ -45,12 +55,12 @@ body.platform-windows {
 }
 body.platform-windows.dark-mode { --accent-color-windows: #4cc2ff; }
 body.platform-windows .model-option.active,
-body.platform-windows .auth-container button[type="submit"] {
+body.platform-windows .auth-container .auth-button.primary {
     background-color: var(--accent-color-windows);
     color: #fff;
 }
 body.platform-windows.dark-mode .model-option.active { color: #000; }
-body.platform-windows input:focus {
+body.platform-windows .input-group input:focus {
     border-color: var(--accent-color-windows) !important;
     box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.2) !important;
 }
@@ -109,25 +119,10 @@ body.dark-mode #auth-view {
     border: 1px solid var(--border-color); 
     border-radius: var(--border-radius); 
     box-shadow: 0 15px 35px rgba(0,0,0,0.08); 
-    transition: all var(--transition-speed) ease;
 }
-body.dark-mode .auth-container { box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
-
-.auth-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-.auth-header h1 {
-    font-size: 2.5em;
-    font-weight: 700;
-    color: var(--text-color);
-}
-.auth-header p {
-    font-size: 1em;
-    color: var(--text-color-light);
-    margin-top: 5px;
-}
-
+.auth-header { text-align: center; margin-bottom: 30px; }
+.auth-header h1 { font-size: 2.5em; font-weight: 700; color: var(--text-color); }
+.auth-header p { font-size: 1em; color: var(--text-color-light); margin-top: 5px; }
 .auth-container h2 { text-align: center; margin-bottom: 30px; font-size: 1.8em; font-weight: 500; }
 .auth-container form { display: flex; flex-direction: column; gap: 18px; }
 .auth-container input[type="email"], .auth-container input[type="password"] { 
@@ -137,7 +132,6 @@ body.dark-mode .auth-container { box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
     font-size: 1em; 
     background-color: var(--message-bg); 
     color: var(--text-color);
-    transition: all var(--transition-speed) ease;
 }
 .auth-container input:focus { 
     outline: none; 
@@ -145,13 +139,16 @@ body.dark-mode .auth-container { box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); 
 }
 .remember-me-container { display: flex; align-items: center; gap: 8px; font-size: 0.9em; color: var(--text-color-light); margin-top: -5px; }
-.auth-container button[type="submit"] { padding: 15px; background-color: var(--accent-color); color: var(--bg-color); border: none; border-radius: var(--border-radius); font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 10px; transition: transform 0.1s ease, background-color 0.2s ease; }
-.auth-container button[type="submit"]:hover { opacity: 0.9; }
-.auth-container button[type="submit"]:active { transform: scale(0.98); }
+.auth-button { padding: 15px; background-color: var(--accent-color); color: var(--button-text); border: none; border-radius: var(--border-radius); font-size: 1.1em; font-weight: bold; cursor: pointer; margin-top: 10px; }
+.auth-button:hover { opacity: 0.9; }
+.auth-button:active { transform: scale(0.98); }
 .auth-container .auth-switch { text-align: center; margin-top: 20px; font-size: 0.9em; }
 .auth-container .auth-switch a { color: #3b82f6; text-decoration: none; font-weight: 500; }
-.error-message { color: #ef4444; text-align: center; margin-top: 15px; font-weight: 500; min-height: 20px; }
+.error-message { color: var(--error-color); text-align: center; margin-top: 15px; font-weight: 500; min-height: 20px; }
 
+
+/* --- End of Part 1 --- */
+/* --- Start of Part 2 --- */
 
 /* =================================================================
    5. Main App: Sidebar
@@ -167,14 +164,16 @@ body.dark-mode .auth-container { box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
 .history-item:hover { background-color: var(--message-bg); }
 .history-item.active { background-color: var(--accent-color); color: var(--bg-color); }
 .sidebar-footer { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 8px; }
-.user-email { text-align: center; padding: 8px; font-size: 0.85em; color: var(--text-color-light); overflow: hidden; text-overflow: ellipsis; }
+.user-info-container { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.user-email { flex-grow: 1; text-align: left; padding: 8px; font-size: 0.85em; color: var(--text-color-light); overflow: hidden; text-overflow: ellipsis; }
+.get-pro-button { background: none; border: 1px solid #DAA520; color: #DAA520; border-radius: 20px; padding: 4px 10px; font-weight: bold; cursor: pointer; font-size: 0.8em; transition: all var(--transition-speed); }
+.get-pro-button:hover { background: #DAA520; color: var(--bg-color); transform: scale(1.05); }
+body.dark-mode .get-pro-button { color: #DAA520; border-color: #DAA520; }
+body.dark-mode .get-pro-button:hover { color: #121212; }
 .footer-divider { width: 100%; border: none; border-top: 1px solid var(--border-color); margin: 8px 0; }
 
-/* --- End of Part 1 --- */
-/* --- Start of Part 2 --- */
-
 /* =================================================================
-   6. Main App: Chat View
+   6. Main App: Chat View & Input
    ================================================================= */
 #main-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
 #chat-view { display: flex; flex-direction: column; height: 100%; width: 100%; max-width: 900px; margin: 0 auto; }
@@ -193,14 +192,10 @@ body.dark-mode .auth-container { box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
 .bot-message pre { background-color: var(--code-bg); color: #abb2bf; padding: 16px; border-radius: var(--border-radius); overflow-x: auto; }
 .message-footer { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 12px; opacity: 0; transition: opacity 0.3s ease; }
 .bot-message:hover .message-footer { opacity: 1; }
-.feedback-button { background: none; border: 1px solid var(--border-color); border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; justify-content: center; align-items: center; color: var(--text-color-light); }
-.feedback-button:hover { transform: scale(1.1); }
+.feedback-button, .meta-cognition-button { background: none; border: 1px solid var(--border-color); border-radius: 12px; padding: 4px 10px; font-size: 0.8em; color: var(--text-color-light); cursor: pointer; }
+.feedback-button:hover, .meta-cognition-button:hover { background-color: var(--user-message-bg); }
 .feedback-button.selected { border-color: #3b82f6; background-color: #eff6ff; color: #2563eb; }
 body.dark-mode .feedback-button.selected { background-color: #1e293b; color: #60a5fa; }
-
-/* =================================================================
-   7. Main App: Input Area
-   ================================================================= */
 .input-area-container { padding: 8px 16px 16px; border-top: 1px solid var(--border-color); }
 .input-area { display: flex; align-items: flex-end; gap: 8px; padding: 8px; border: 1px solid var(--border-color); border-radius: 24px; background-color: var(--bg-color); }
 textarea#user-input { flex-grow: 1; border: none; background: none; resize: none; font-family: inherit; font-size: 16px; max-height: 200px; padding: 8px; color: var(--text-color); }
@@ -215,6 +210,10 @@ button#send-button.is-generating .send-icon, #microphone-button.is-recording .mi
 #contextual-actions-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 0 16px 12px 16px; }
 .contextual-action-button { padding: 8px 16px; font-size: 0.9em; background-color: var(--message-bg); border: 1px solid var(--border-color); border-radius: 18px; cursor: pointer; }
 
+
+/* --- End of Part 2 --- */
+/* --- Start of Part 3 --- */
+
 /* =================================================================
    8. Modals & Notifications
    ================================================================= */
@@ -222,44 +221,53 @@ button#send-button.is-generating .send-icon, #microphone-button.is-recording .mi
 .modal-content { background: var(--bg-color); padding: 24px; border-radius: 12px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; position: relative; }
 .modal-close { position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-color); }
 .modal-form { margin-top: 20px; display: flex; flex-direction: column; gap: 15px; }
-.modal-form label { font-weight: 500; }
-.modal-form select, .modal-form textarea, .modal-form input { padding: 12px; border: 1px solid var(--border-color); border-radius: var(--border-radius); font-family: inherit; font-size: 1em; background-color: var(--bg-color); color: var(--text-color); }
+.modal-form label { font-weight: 500; text-align: left; }
+.modal-form select, .modal-form textarea, .modal-form input[type="text"] { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: var(--border-radius); font-family: inherit; font-size: 1em; background-color: var(--bg-color); color: var(--text-color); }
 #custom-instructions-input, #script-input { font-family: 'Courier New', Courier, monospace; background-color: var(--message-bg); }
 body.dark-mode #custom-instructions-input, body.dark-mode #script-input { background-color: var(--code-bg); }
 .modal-form button[type="submit"] { padding: 14px; background-color: var(--accent-color); color: var(--bg-color); border: none; border-radius: var(--border-radius); font-size: 1em; font-weight: 500; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; }
 .spinner { display: none; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .modal-form button[type="submit"].loading .spinner { display: block; }
-.modal-form button[type="submit"].loading { color: transparent; }
+.modal-form button[type="submit"].loading { color: transparent !important; }
 #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
 .toast-notification { background-color: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-left: 5px solid #3b82f6; border-radius: var(--border-radius); padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 350px; max-width: 90vw; opacity: 0; transform: translateX(100%); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
 .toast-notification.show { opacity: 1; transform: translateX(0); }
 .toast-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 10px; }
-.toast-body { font-size: 0.9em; line-height: 1.5; }
+.toast-body { text-align: left; font-size: 0.9em; line-height: 1.5; }
 .toast-button-group { margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end; }
 .toast-btn { border: none; border-radius: 5px; padding: 8px 12px; cursor: pointer; font-weight: 500; }
 .toast-btn.accept { background-color: #2563eb; color: white; }
 .toast-btn.dismiss { background-color: var(--message-bg); color: var(--text-color); border: 1px solid var(--border-color); }
-.delete-agent-button, .delete-tool-button { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-weight: bold; }
+.delete-agent-button { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-weight: bold; }
+body.dark-mode .delete-agent-button { background-color: #450a0a; color: #fca5a5; border-color: #7f1d1d; }
 
-/* --- 9. Export Button Colors --- */
+.pro-modal-content { padding: 0; max-width: 480px; overflow: hidden; }
+.pro-modal-body { padding: 40px; text-align: center; }
+.pro-icon { font-size: 3em; line-height: 1; margin-bottom: 20px; }
+.pro-modal-body h2 { font-size: 2.2em; font-weight: 700; margin-bottom: 10px; }
+.pro-subtitle { font-size: 1.1em; color: var(--text-color-light); max-width: 350px; margin: 0 auto 30px auto; }
+.pro-features-list { text-align: left; display: inline-block; margin-bottom: 30px; }
+.pro-features-list p { margin-bottom: 12px; font-size: 1em; }
+.upgrade-button { width: 100%; padding: 18px; font-size: 1.2em; font-weight: bold; background-color: var(--accent-color); color: var(--bg-color); border: none; cursor: pointer; }
+.payment-info { text-align: center; font-size: 0.8em; color: var(--text-color-light); margin-top: 15px; }
+
+/* =================================================================
+   9. Export Button Colors
+   ================================================================= */
 .export-button { text-align: center; }
 .export-button.summary { background-color: #fefce8 !important; border-color: #facc15 !important; color: #713f12 !important; }
-body.dark-mode .export-button.summary { background-color: #422006 !important; color: #fefce8 !important; }
 .export-button.convert { background-color: #e5e7eb !important; border-color: #9ca3af !important; color: #1f2937 !important; }
-body.dark-mode .export-button.convert { background-color: #374151 !important; color: #e5e7eb !important; }
 .export-button.profile { background-color: #f3e8ff !important; border-color: #9333ea !important; color: #581c87 !important; }
-body.dark-mode .export-button.profile { background-color: #581c87 !important; color: #f3e8ff !important; }
 .export-button.agents { background-color: #e0f2fe !important; border-color: #38bdf8 !important; color: #0c4a6e !important; }
-body.dark-mode .export-button.agents { background-color: #0c4a6e !important; color: #e0f2fe !important; }
 .export-button.scripting { background-color: #f5f3ff !important; border-color: #818cf8 !important; color: #4338ca !important; }
-body.dark-mode .export-button.scripting { background-color: #3730a3 !important; color: #e0e7ff !important; }
 .export-button.logout { background-color: #f1f5f9 !important; border-color: #94a3b8 !important; color: #475569 !important; }
-body.dark-mode .export-button.logout { background-color: #334155 !important; color: #cbd5e1 !important; }
 .export-button.pdf { background-color: #ff4d4d !important; border-color: #d93636 !important; color: #ffffff !important; }
 .export-button.docx { background-color: #2b579a !important; border-color: #1e3c6a !important; color: #ffffff !important; }
 .export-button.excel { background-color: #217346 !important; border-color: #185333 !important; color: #ffffff !important; }
 .export-button.pptx { background-color: #ff9900 !important; border-color: #e68a00 !important; color: #ffffff !important; }
+#create-file-button { background-color: var(--accent-color) !important; color: var(--bg-color) !important; border-color: var(--accent-color) !important; }
+
 
 /* =================================================================
    10. Responsive Styles
@@ -268,5 +276,8 @@ body.dark-mode .export-button.logout { background-color: #334155 !important; col
     #history-sidebar { position: fixed; top: 0; bottom: 0; transform: translateX(-100%); z-index: 2000; box-shadow: 5px 0 15px rgba(0,0,0,0.1); }
     #history-sidebar.open { transform: translateX(0); }
     .hamburger-button { display: block; }
+    .auth-container { padding: 25px 20px; }
 }
+
+/* --- End of Part 3 --- */
 

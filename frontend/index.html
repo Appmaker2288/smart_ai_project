@@ -30,7 +30,7 @@
                     <input type="email" id="login-email" placeholder="Email" required autocomplete="email">
                     <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password">
                     
-                    <div class="cf-turnstile" data-sitekey="0x4AAAAAABjMG1cPlnGa38v3"></div>
+                    <div class="cf-turnstile" data-sitekey="Your_Site_Key_Here"></div>
 
                     <div class="remember-me-container">
                         <input type="checkbox" id="remember-me">
@@ -44,10 +44,10 @@
                 <h2>Create Account</h2>
                 <form id="register-form">
                     <input type="email" id="register-email" placeholder="Email" required autocomplete="email">
-                    <input type="password" id="register-password" placeholder="Password (min. 6 characters)" required autocomplete="new-password">
+                    <input type="password" id="register-password" placeholder="Password (min. 8 characters)" required autocomplete="new-password">
                     <input type="password" id="register-password-confirm" placeholder="Confirm Password" required autocomplete="new-password">
                     
-                     <div class="cf-turnstile" data-sitekey="0x4AAAAAABjMG1cPlnGa38v3"></div>
+                     <div class="cf-turnstile" data-sitekey="Your_Site_Key_Here"></div>
 
                     <button type="submit">Register</button>
                     <p class="auth-switch">Already have an account? <a href="#" id="show-login-link">Login here</a></p>
@@ -66,7 +66,10 @@
                 </div>
                 <nav id="chat-history-list"></nav>
                 <div class="sidebar-footer">
-                    <span id="user-email-display" class="user-email"></span>
+                    <div class="user-info-container">
+                        <span id="user-email-display" class="user-email"></span>
+                        <button id="get-pro-button" class="get-pro-button">✨ Get Pro</button>
+                    </div>
                     <button id="logout-button" class="sidebar-button export-button logout">Logout</button>
                     <hr class="footer-divider">
                     <button id="summarize-button" class="sidebar-button export-button summary">Summarize Chat</button>
@@ -75,10 +78,15 @@
                     <button id="agents-button" class="sidebar-button export-button agents">My Agents</button>
                     <button id="scripting-button" class="sidebar-button export-button scripting">Workflow Scripts</button>
                     <hr class="footer-divider">
-                    <button id="generate-pdf-button" class="sidebar-button export-button pdf">Create PDF</button>
-                    <button id="generate-docx-button" class="sidebar-button export-button docx">Create Word</button>
-                    <button id="generate-excel-button" class="sidebar-button export-button excel">Create Excel</button>
-                    <button id="generate-pptx-button" class="sidebar-button export-button pptx">Create PowerPoint</button>
+                    <div class="dropdown-container">
+                        <button id="create-file-button" class="sidebar-button">✨ Create New File</button>
+                        <div id="create-file-dropdown" class="dropdown-menu hidden">
+                            <a href="#" data-type="pdf">PDF Document</a>
+                            <a href="#" data-type="docx">Word Document</a>
+                            <a href="#" data-type="excel">Excel Sheet</a>
+                            <a href="#" data-type="pptx">PowerPoint</a>
+                        </div>
+                    </div>
                 </div>
             </aside>
         
@@ -133,6 +141,7 @@
         <div id="scripting-modal" class="modal-overlay hidden"></div>
         <div id="feedback-modal" class="modal-overlay hidden"></div>
         <div id="meta-modal" class="modal-overlay hidden"></div>
+        <div id="pro-modal" class="modal-overlay hidden"></div>
 
         <div id="toast-container"></div>
     </div>
