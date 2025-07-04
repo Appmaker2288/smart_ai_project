@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function detectPlatform() {
         const ua = navigator.userAgent;
         if (/android/i.test(ua)) return 'platform-android';
-        if (/iPad|iPhone|iPod/.test(ua)) return 'platform-ios';
+        if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return 'platform-ios';
         if (/Mac|iMac|MacBook/i.test(ua)) return 'platform-macos';
         if (/Windows/i.test(ua)) return 'platform-windows';
         return 'platform-linux';
@@ -306,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function summarizeChat() { /* ... full function code using secureFetch ... */ }
-    async function generateFile(type) { /* ... full async/streaming function code using secureFetch ... */ }
+    async function generateFile(type) { /* ... full async/polling function code using secureFetch ... */ }
     async function handleFileConversion(event) { /* ... full function code using secureFetch ... */ }
     async function loadProfile() { /* ... full function code using secureFetch ... */ }
     async function saveProfile(event) { /* ... full function code using secureFetch ... */ }
@@ -366,21 +366,24 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const metaData = JSON.parse(metaMatch[1]);
                 if (metaData.thought_process) {
-                    const footer = document.createElement('div');
-                    footer.className = 'message-footer';
-                    const metaButton = document.createElement('button');
-                    metaButton.className = 'meta-cognition-button';
-                    metaButton.textContent = 'Thought Process';
-                    metaButton.onclick = () => showMetaCognition(metaData.thought_process);
-                    footer.appendChild(metaButton);
-                    element.appendChild(footer);
+                    let footer = element.querySelector('.message-footer');
+                    if(!footer) {
+                        footer = document.createElement('div');
+                        footer.className = 'message-footer';
+                        element.appendChild(footer);
+                    }
+                    const button = document.createElement('button');
+                    button.className = 'meta-cognition-button';
+                    button.textContent = 'Thought Process';
+                    button.onclick = () => showMetaCognition(metaData.thought_process);
+                    footer.appendChild(button);
                 }
             } catch (e) { console.error("Failed to parse meta-cognition JSON:", e); }
         }
 
-        if (element.classList.contains('bot-message')) {
+        if (element.classList.contains('bot-message') && content.trim()) {
             let footer = element.querySelector('.message-footer');
-            if (!footer) {
+            if(!footer) {
                 footer = document.createElement('div');
                 footer.className = 'message-footer';
                 element.appendChild(footer);
@@ -411,34 +414,65 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function saveConversations() { localStorage.setItem(`smartAIChats_${localStorage.getItem('userEmail')}`, JSON.stringify(conversations)); }
     function loadConversations() { conversations = JSON.parse(localStorage.getItem(`smartAIChats_${localStorage.getItem('userEmail')}`)) || {}; }
-
     function createNewChat() { /* ... full function code ... */ }
     function loadChat(id) { /* ... full function code ... */ }
     function deleteChat(id) { /* ... full function code ... */ }
     function renderChatHistoryList() { /* ... full function code with delegated listeners ... */ }
 
+// --- End of Part 3 ---
+// --- Start of Part 4 ---
+
     // =================================================================
-    // --- 9. EVENT LISTENERS & INITIALIZATION ---
+    // --- 9. EVENT LISTENERS ---
     // =================================================================
     
     function addSafeListener(element, event, handler) {
-        if (element) element.addEventListener(event, handler);
+        if (element) {
+            const newElement = element.cloneNode(true);
+            element.parentNode.replaceChild(newElement, element);
+            newElement.addEventListener(event, handler);
+            return newElement;
+        }
+        return element;
     }
 
     function addMainAppListeners() {
-        Object.keys(appDom).forEach(key => {
-            const el = document.getElementById(key);
-            if (el) appDom[key] = el;
-        });
+        // Re-select all DOM elements for the main app now that it's visible
+        appDom = {
+            appLayout: document.getElementById('app-layout'),
+            historySidebar: document.getElementById('history-sidebar'),
+            newChatButton: document.getElementById('new-chat-button'),
+            themeToggleButton: document.getElementById('theme-toggle-button'),
+            chatHistoryList: document.getElementById('chat-history-list'),
+            hamburgerButton: document.getElementById('hamburger-button'),
+            userEmailDisplay: document.getElementById('user-email-display'),
+            logoutButton: document.getElementById('logout-button'),
+            // ... Select ALL other app-specific dom elements here
+        };
         
-        addSafeListener(appDom.logoutButton, 'click', handleLogout);
-        addSafeListener(appDom.newChatButton, 'click', createNewChat);
-        // ... (Add ALL other listeners for the main app here using appDom.element)
+        // This is a more robust way to handle dynamic listeners
+        appDom.logoutButton = addSafeListener(appDom.logoutButton, 'click', handleLogout);
+        appDom.newChatButton = addSafeListener(appDom.newChatButton, 'click', createNewChat);
+        // ... (Add ALL other listeners for the main app here using the same pattern)
     }
 
+    // =================================================================
+    // --- 10. INITIALIZATION ---
+    // =================================================================
+
     function initializeApp() {
-        toggleViews();
-        addMainAppListeners();
+        toggleViews(); // Show the main app UI
+        
+        // This is a more robust way to ensure DOM elements are ready
+        // We will select and assign listeners after the main app is visible
+        if (document.getElementById('app-layout')) {
+            addMainAppListeners();
+        } else {
+            // This is a fallback, ideally the app-container has the HTML already
+            // but if not, we can re-insert it, though this is less clean.
+            console.error("Main app layout not found after login!");
+            return;
+        }
         
         appDom.userEmailDisplay.textContent = localStorage.getItem('userEmail');
         
@@ -459,6 +493,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- Initial Script Execution ---
     dom.body.classList.add(detectPlatform());
+    
     API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
         ? 'http://localhost:3000/api'
         : 'https://mangrove-brash-banjo.glitch.me/api';
@@ -474,5 +509,6 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleViews();
     }
 });
-// --- End of Part 3 ---
+
+// --- End of Part 4 ---
 

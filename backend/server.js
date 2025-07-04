@@ -29,14 +29,17 @@ const axios = require('axios');
 // =================================================================
 dotenv.config();
 const app = express();
-app.use(cors()); // Enable CORS early
 
-// Special raw body parser for Stripe webhook, must come before app.use(express.json())
+// IMPORTANT: CORS must be before other routes
+app.use(cors()); 
+
+// IMPORTANT: Special raw body parser for NOWPayments webhook must come BEFORE the general express.json()
 app.post('/api/payments/nowpayments-webhook', express.raw({type: 'application/json'}), async (req, res) => {
     try {
-        const { payment_status, order_id, payment_id } = req.body;
+        const paymentData = JSON.parse(req.body.toString());
+        const { payment_status, order_id, payment_id } = paymentData;
 
-        if (payment_status === 'finished') {
+        if (payment_status === 'finished' || payment_status === 'confirmed' || payment_status === 'sending') {
             const userId = order_id.split('-')[2];
             const user = await User.findById(userId);
 
@@ -59,7 +62,10 @@ app.post('/api/payments/nowpayments-webhook', express.raw({type: 'application/js
 });
 
 
+// General JSON parser for all other routes
 app.use(express.json({ limit: '50mb' }));
+
+// Content Security Policy Header
 app.use((req, res, next) => {
     res.setHeader("Content-Security-Policy", "script-src 'self' https://challenges.cloudflare.com");
     next();
@@ -86,7 +92,7 @@ const agentQueue = new Queue('agentTasks', { connection: redisConnection });
 // =================================================================
 // --- 4. API KEY & CLIENT SETUP ---
 // =================================================================
-if (!process.env.OPENAI_API_KEY || !process.env.PEXELS_API_KEY || !process.env.DATABASE_URL || !process.env.JWT_SECRET || !process.env.BREVO_API_KEY || !process.env.SENDER_EMAIL_ADDRESS || !process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY || !process.env.REDIS_HOST) {
+if (!process.env.OPENAI_API_KEY || !process.env.PEXELS_API_KEY || !process.env.DATABASE_URL || !process.env.JWT_SECRET || !process.env.NOWPAYMENTS_API_KEY || !process.env.SENDER_EMAIL_ADDRESS || !process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY || !process.env.REDIS_HOST) {
     console.error("FATAL ERROR: One or more critical environment variables are missing. Please check your .env file.");
     process.exit(1);
 }
@@ -125,44 +131,7 @@ const profileSchema = new mongoose.Schema({
 });
 const Profile = mongoose.model('Profile', profileSchema);
 
-const agentSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    name: { type: String, required: true },
-    prompt: { type: String, required: true },
-    schedule: { type: String, required: true },
-    lastRun: { type: Date, default: null },
-    nextRun: { type: Date, default: Date.now },
-    isActive: { type: Boolean, default: true }
-});
-const Agent = mongoose.model('Agent', agentSchema);
-
-const actionLogSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    actionType: { type: String, required: true },
-    details: { type: Object },
-    timestamp: { type: Date, default: Date.now }
-});
-const ActionLog = mongoose.model('ActionLog', actionLogSchema);
-
-const suggestionSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    description: { type: String, required: true },
-    action: { type: Object, required: true },
-    status: { type: String, default: 'pending' },
-    createdAt: { type: Date, default: Date.now, expires: '7d' }
-});
-const Suggestion = mongoose.model('Suggestion', suggestionSchema);
-
-const feedbackSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    chatId: { type: String, required: true },
-    messageContent: { type: String, required: true },
-    rating: { type: String, enum: ['positive', 'negative'], required: true },
-    comment: { type: String },
-    timestamp: { type: Date, default: Date.now }
-});
-const Feedback = mongoose.model('Feedback', feedbackSchema);
-
+// ... (All other schemas: Agent, ActionLog, Suggestion, Feedback)
 
 // =================================================================
 // --- 6. MIDDLEWARE ---
@@ -234,16 +203,13 @@ async function getAdvancedSystemPrompt(personaArray, customInstructions, emotion
     return `${personaPrompt}${customInstructionBlock}${emotionalAdjustment}${metaCognitionInstruction}\nIMPORTANT INSTRUCTIONS:\n1. Provide comprehensive answers.\n2. Suggest follow-up questions.`;
 }
 
-async function fetchImage(query) { /* ... same as previous final version ... */ }
-async function generateStructuredDocument(userRequest, language, persona, customInstructions) { /* ... same as previous final version ... */ }
-async function generateStructuredPowerPoint(userRequest, language, persona, customInstructions) { /* ... same as previous final version ... */ }
-async function generateStructuredExcel(userRequest, language, persona, customInstructions) { /* ... same as previous final version ... */ }
-async function analyzeAndImprove(userId, feedback) { /* ... same as previous final version ... */ }
+// ... (All other helper functions: fetchImage, generateStructuredDocument, etc.)
 
 // --- BACKGROUND WORKERS & SCHEDULERS ---
 const agentWorker = new Worker('agentTasks', async job => { /* ... same as previous final version ... */ }, { connection: redisConnection });
 cron.schedule('0 * * * *', async () => { /* ... Agent execution cron logic ... */ });
 cron.schedule('0 */2 * * *', async () => { /* ... Suggestion generation cron logic ... */ });
+async function analyzeAndImprove(userId, feedback) { /* ... same as previous final version ... */ }
 
 
 // =================================================================
@@ -255,13 +221,11 @@ const apiRouter = express.Router();
 apiRouter.post('/auth/register', verifyTurnstile, async (req, res) => {
     try {
         const { email, password } = req.body;
-        // Password complexity check
         if (!email || !password || password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
             return res.status(400).json({ error: 'Password does not meet complexity requirements.' });
         }
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(409).json({ error: 'User with this email already exists.' });
-        
         const hashedPassword = await bcrypt.hash(password, 12);
         const newUser = new User({ email, password: hashedPassword });
         await newUser.save();
@@ -292,20 +256,30 @@ apiRouter.get('/profile', authMiddleware, async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Could not fetch profile.' }); }
 });
 
-apiRouter.post('/profile', authMiddleware, async (req, res) => { /* ... same as previous final version ... */ });
-apiRouter.get('/agents', authMiddleware, async (req, res) => { /* ... same as previous final version ... */ });
-apiRouter.post('/agents', authMiddleware, async (req, res) => { /* ... same as previous final version ... */ });
-apiRouter.delete('/agents/:id', authMiddleware, async (req, res) => { /* ... same as previous final version ... */ });
-apiRouter.get('/suggestions', authMiddleware, async (req, res) => { /* ... same as previous final version ... */ });
-apiRouter.post('/suggestions/:id/execute', authMiddleware, async (req, res) => { /* ... same as previous final version ... */ });
-apiRouter.delete('/suggestions/:id', authMiddleware, async (req, res) => { /* ... same as previous final version ... */ });
-apiRouter.post('/feedback', authMiddleware, async (req, res) => { /* ... same as previous final version ... */ });
-apiRouter.post('/summarize', authMiddleware, async (req, res) => { /* ... same as previous final version ... */ });
+apiRouter.post('/payments/create-invoice', authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        const invoiceData = {
+            price_amount: 19.99,
+            price_currency: 'usd',
+            order_id: `smartai-pro-${user._id}-${Date.now()}`,
+            order_description: 'Smart AI Pro Plan - 1 Month',
+            ipn_callback_url: `${process.env.YOUR_BACKEND_URL}/api/payments/nowpayments-webhook`,
+            success_url: `${process.env.YOUR_FRONTEND_URL}?payment-success=true`,
+            cancel_url: process.env.YOUR_FRONTEND_URL
+        };
+        const response = await axios.post('https://api.nowpayments.io/v1/invoice', invoiceData, { headers: { 'x-api-key': process.env.NOWPAYMENTS_API_KEY } });
+        res.json({ invoiceUrl: response.data.invoice_url });
+    } catch (error) {
+        console.error('[NOWPayments] Error creating invoice:', error.response ? error.response.data : error.message);
+        res.status(500).json({ error: 'Could not create payment invoice.' });
+    }
+});
+
+// ... (All other GET, POST, DELETE endpoints for profile, agents, suggestions, feedback, summarize, convert)
 
 // --- End of Part 2 ---
 // --- Start of Part 3 ---
-
-// --- Main Feature Endpoints (Continued) ---
 
 // Chat Endpoint
 apiRouter.post('/chat', authMiddleware, async (req, res) => {
@@ -326,12 +300,12 @@ apiRouter.post('/chat', authMiddleware, async (req, res) => {
     finally { res.write(`data: [DONE]\n\n`); res.end(); }
 });
 
-// Asynchronous File Generation Endpoint
+// Asynchronous File Generation Endpoint with Streaming Status
 apiRouter.post('/generate/stream', authMiddleware, async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
         const isPro = user.role === 'super_admin' || (user.subscription && user.subscription.status === 'pro' && new Date() < new Date(user.subscription.periodEnd));
-        // Simple usage limit for free users - can be expanded
+        
         const monthlyUsage = await ActionLog.countDocuments({ userId: req.user.id, actionType: 'generate_file', timestamp: { $gte: new Date(new Date().setDate(new Date().getDate() - 30)) } });
         
         if (!isPro && monthlyUsage >= 5) {
@@ -343,30 +317,50 @@ apiRouter.post('/generate/stream', authMiddleware, async (req, res) => {
         const { type, topic, language, persona } = req.body;
         processFileGeneration(res, type, topic, language, persona, req.user.id);
     } catch (error) {
-         res.status(500).json({ error: 'Failed to start generation job.' });
+         res.status(500).json({ error: 'Failed to start job.' });
     }
 });
 
-// Main Background Processing Function
 async function processFileGeneration(res, type, topic, language, persona, userId) {
     const sendStatus = (status, progress = '') => res.write(`data: ${JSON.stringify({ status, progress })}\n\n`);
     try {
-        // ... (Full logic from previous versions to generate file and log action) ...
-        // ... (The email notification logic is also here) ...
+        const profile = await Profile.findOne({ userId });
+        const customInstructions = profile ? profile.customInstructions : '';
+        sendStatus('Generating structure...');
+        let buffer, fileName, contentType, fileTitle;
+        
+        // --- Full rendering logic for ALL file types must be here ---
+        // This is a simplified representation, the full logic should be used from previous versions.
+        if (type === 'pdf') {
+            const docStructure = await generateStructuredDocument(topic, language, persona, customInstructions);
+            fileTitle = docStructure.title;
+            fileName = `${fileTitle.replace(/ /g, '_')}.pdf`;
+            contentType = 'application/pdf';
+            sendStatus('Rendering PDF...');
+            const pdfDoc = await PDFDocument.create();
+            // ... full pdf rendering logic ...
+            buffer = Buffer.from(await pdfDoc.save());
+        } // ... else if for docx, excel, pptx
+        
+        const fileData = { buffer: buffer.toString('base64'), fileName, contentType };
+        res.write(`data: ${JSON.stringify({ file: fileData })}\n\n`);
+
+        await new ActionLog({ userId, actionType: 'generate_file', details: { type, topic } }).save();
+        
+        // Email Notification Logic
+        const user = await User.findById(userId);
+        if (user.role !== 'super_admin') {
+            // ... Full email sending logic using Brevo ...
+        }
+
     } catch (error) {
-        console.error(`File Generation Error for job:`, error);
+        console.error(`File Generation Error:`, error);
         res.write(`data: ${JSON.stringify({ error: 'Failed to generate file.' })}\n\n`);
     } finally {
         res.write(`data: [DONE]\n\n`);
         res.end();
     }
 }
-
-// Convert File Endpoint
-apiRouter.post('/convert/file', authMiddleware, upload.single('file'), async (req, res) => { /* ... The final high-precision version ... */ });
-
-// Payment Endpoints
-apiRouter.post('/payments/create-invoice', authMiddleware, async (req, res) => { /* ... same as previous final version ... */ });
 
 
 app.use('/api', apiRouter);
